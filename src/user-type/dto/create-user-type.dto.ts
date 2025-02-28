@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import {
   ArrayNotEmpty,
   IsArray,
@@ -6,9 +5,19 @@ import {
   IsNotEmpty,
   IsString,
 } from 'class-validator';
-import { Permissions } from 'constant/permission.Enum';
+import { Permissions } from 'constant/permission.enum';
+
 export class CreateUserTypeDto {
-  @IsString() @IsNotEmpty() userTypeID: string;
-  @IsString() @IsNotEmpty() userRole: string;
-  @IsArray() @ArrayNotEmpty() @IsEnum(Permissions) permission?: Permissions[];
+  @IsString()
+  @IsNotEmpty()
+  userTypeID: string;
+
+  @IsString()
+  @IsNotEmpty()
+  userRole: string;
+
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsEnum(Permissions)
+  permission?: Permissions[];
 }

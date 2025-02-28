@@ -13,9 +13,27 @@ import { CompanyModule } from './company/company.module';
 import { PaymentModule } from './payment/payment.module';
 import { LedgerModule } from './ledger/ledger.module';
 import { UserTypeModule } from './user-type/user-type.module';
+import { ConfigModule } from '@nestjs/config';
+import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
-  imports: [AuthModule, UserModule, ProductModule, InventoryModule, CategoryModule, CourierChargesModule, OrderModule, OrderItemModule, CompanyModule, PaymentModule, LedgerModule, UserTypeModule],
+  imports: [
+    ConfigModule.forRoot(),
+    // TODO: add mongo db url
+    MongooseModule.forRoot(""),
+    AuthModule,
+    UserModule,
+    ProductModule,
+    InventoryModule,
+    CategoryModule,
+    CourierChargesModule,
+    OrderModule,
+    OrderItemModule,
+    CompanyModule,
+    PaymentModule,
+    LedgerModule,
+    UserTypeModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { CourierChargesService } from './courier-charges.service';
-import { CreateCourierChargeDto } from './dto/create-courier-charge.dto';
 import { UpdateCourierChargeDto } from './dto/update-courier-charge.dto';
+import { CreateCourierChargeDto } from './dto/create-courier-charge.dto';
 
 @Controller('courier-charges')
 export class CourierChargesController {
