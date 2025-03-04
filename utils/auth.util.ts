@@ -1,13 +1,14 @@
-import bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt';
 
 export const hashPassword = async (password: string) => {
   const saltOrRounds = 10;
-  try {
-    return await bcrypt.hash(password, saltOrRounds);
-  } catch (error) {
-    console.error('Error hashing password', error);
-    throw new Error('Error hashing password');
-  }
+  return await bcrypt.hash(password, saltOrRounds);
+  // try {
+    
+  // } catch (error) {
+  //   console.error('Error hashing password', error);
+  //   //throw new Error('Error hashing password');
+  // }
 };
 
 export const isPasswordMatch = async (

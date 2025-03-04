@@ -5,9 +5,8 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { IS_PERMISSION_KEY } from './decorators/permission.decorator';
-import { Permissions } from 'src/constant/permission.enum';
-
+import { IS_PERMISSION_KEY } from '../decorators/permission.decorator';
+import { Permissions } from 'constant/permission.enum';
 @Injectable()
 export class PermissionGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}

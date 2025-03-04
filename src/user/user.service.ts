@@ -7,6 +7,8 @@ import { Model } from 'mongoose';
 import { hashPassword } from 'utils/auth.util';
 import { Permissions } from 'constant/permission.enum';
 import { UserType } from 'src/user-type/schema/user-type.schema';
+import { Console } from 'console';
+
 
 @Injectable()
 export class UserService {
@@ -81,8 +83,8 @@ export class UserService {
       return;
     }
 
-    const hash = await hashPassword('Pa$$word');
-
+    const hash = await hashPassword('Test@1234');
+    
     const role = await this.userTypeModel.create({
       userRole: 'admin',
       permissions: [
@@ -95,10 +97,10 @@ export class UserService {
 
     await this.userModel.create({
       fName: 'admin',
-      lame: 'admin',
+      lName: 'admin',
       email: 'admin@mailtor.com',
       password: hash,
-      role: role._id,
+      userTypeID: role._id,
     });
   }
 }

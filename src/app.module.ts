@@ -20,7 +20,7 @@ import { MongooseModule } from '@nestjs/mongoose';
   imports: [
     ConfigModule.forRoot(),
     // TODO: add mongo db url
-    MongooseModule.forRoot(""),
+    MongooseModule.forRoot(process.env.MONGO_URI || 'mongodb://localhost:27017/defaultdb'),
     AuthModule,
     UserModule,
     ProductModule,

@@ -41,7 +41,7 @@ export class User extends Document {
   @Prop({ required: true })
   password: string;
 
-  @Prop({ type: Types.ObjectId, required: true, ref: Company.name })
+  @Prop({ type: Types.ObjectId, required: false, ref: Company.name })
   companyID: CreateCompanyDto | Types.ObjectId;
 
   @Prop({ type: Types.ObjectId, required: true, ref: UserType.name })
