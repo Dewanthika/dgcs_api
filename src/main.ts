@@ -5,12 +5,14 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const LOGGER = new Logger();
-  const PORT = process.env.PORT ?? 3000;
+  const PORT = process.env.PORT ?? 8081;
   const app = await NestFactory.create(AppModule, { logger: ['debug'] });
   app.useGlobalPipes(
     new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
   );
   app.enableCors();
+  app.setGlobalPrefix('api');
+
   const config = new DocumentBuilder()
     .setTitle('DGCS API')
     .setDescription('API for the DGCS project')
@@ -19,10 +21,10 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
-  await app.listen(5050, () => {
+  SwaggerModule.setup('api-doc', app, document);
+  await app.listen(PORT, () => {
     LOGGER.log(
-      `Management Service Swagger UI at ${'http://localhost:' + PORT}/api`,
+      `Management Service Swagger UI at ${'http://localhost:' + PORT}/api-doc`,
     );
   });
 }

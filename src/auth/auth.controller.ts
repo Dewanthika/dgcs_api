@@ -11,6 +11,7 @@ export class AuthController {
   @Permission()
   @Post('login')
   signIn(@Body() signInDto: AuthDto) {
+    console.log('hello')
     return this.authService.login(signInDto.email, signInDto.password);
   }
 }
