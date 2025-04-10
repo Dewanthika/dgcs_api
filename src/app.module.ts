@@ -12,9 +12,12 @@ import { OrderItemModule } from './order-item/order-item.module';
 import { CompanyModule } from './company/company.module';
 import { PaymentModule } from './payment/payment.module';
 import { LedgerModule } from './ledger/ledger.module';
-import { UserTypeModule } from './user-type/user-type.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { FilesModule } from './files/files.module';
+import { CloudinaryModule } from 'nestjs-cloudinary';
+import { MulterModule } from '@nestjs/platform-express';
+import * as multer from 'multer';
 
 @Module({
   imports: [
@@ -32,7 +35,20 @@ import { MongooseModule } from '@nestjs/mongoose';
     CompanyModule,
     PaymentModule,
     LedgerModule,
-    UserTypeModule,
+    CloudinaryModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (config: ConfigService) => ({
+        cloud_name: config.get<string>('CLOUDINARY_CLOUD_NAME'),
+        api_key: config.get<string>('CLOUDINARY_API_KEY'),
+        api_secret: config.get<string>('CLOUDINARY_API_SECRET'),
+      }),
+      inject: [ConfigService],
+    }),
+    MulterModule.register({
+      limits: { fileSize: 10 * 1024 * 1024 }, // Set file size limit (10MB)
+      storage: multer.memoryStorage(),
+    }),
+    FilesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

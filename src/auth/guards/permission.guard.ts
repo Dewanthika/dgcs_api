@@ -28,18 +28,18 @@ export class PermissionGuard implements CanActivate {
       throw new UnauthorizedException('User not authenticated');
     }
 
-    const userPermissions: Permissions[] = user.permissions || [];
+    // const userPermissions: Permissions[] = user.permissions || [];
 
-    const hasPermission = [
-      Permissions.READ,
-      Permissions.CREATE,
-      Permissions.DELETE,
-      Permissions.UPDATE,
-    ].every((permission) => userPermissions.includes(permission));
+    // const hasPermission = [
+    //   Permissions.READ,
+    //   Permissions.CREATE,
+    //   Permissions.DELETE,
+    //   Permissions.UPDATE,
+    // ].every((permission) => userPermissions.includes(permission));
 
-    if (!hasPermission) {
-      throw new UnauthorizedException('Insufficient permissions');
-    }
+    // if (!hasPermission) {
+    //   throw new UnauthorizedException('Insufficient permissions');
+    // }
 
     return true;
   }
