@@ -54,4 +54,10 @@ export class UserController {
   remove(@Param('id') id: string) {
     return this.userService.remove(id);
   }
+
+  @Post('find-by-email')
+  async getUserByEmail(@Body() body: { email: string }) {
+    const { email } = body;
+    return this.userService.findByEmail(email);
+  }
 }
