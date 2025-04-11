@@ -2,6 +2,7 @@ import {
   ConflictException,
   Injectable,
   Logger,
+  NotFoundException,
   UploadedFile,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -16,6 +17,7 @@ import { FilesService } from 'src/files/files.service';
 @Injectable()
 export class UserService {
   private readonly logger = new Logger(UserService.name);
+
   constructor(
     @InjectModel(User.name) private readonly usersModel: Model<User>,
     private readonly fileService: FilesService,
@@ -29,7 +31,6 @@ export class UserService {
   ) {
     let user: UserDocument;
     try {
-      // Check if email already exists
       const existingUser = await this.usersModel.findOne({
         email: createUserDto.email,
       });
@@ -39,9 +40,7 @@ export class UserService {
         );
       }
 
-      // Hash password before storing
       const hashedPassword = await hashPassword(createUserDto.password);
-      // Upload image to Cloudinary (if provided)
       let businessRegImageUrl = '';
 
       if (file) {
@@ -84,12 +83,16 @@ export class UserService {
     return user;
   }
 
-  findAll() {
-    return `This action returns all user`;
+  async findAll(): Promise<User[]> {
+    return this.usersModel.find().exec();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: string): Promise<User> {
+    const user = await this.usersModel.findById(id).exec();
+    if (!user) {
+      throw new NotFoundException(`User with ID "${id}" not found`);
+    }
+    return user;
   }
 
   async findByEmail(email: string) {
@@ -106,17 +109,59 @@ export class UserService {
     }
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(
+    id: string,
+    updateUserDto: UpdateUserDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ): Promise<User> {
+    // Find the existing user
+    const existingUser = await this.usersModel.findById(id);
+    if (!existingUser) {
+      throw new NotFoundException(`User with ID "${id}" not found`);
+    }
+  
+    let businessRegImageUrl = existingUser.businessRegImage;
+  
+    if (file) {
+      try {
+        const uploadResult = await this.fileService.uploadFile(file);
+        if ('secure_url' in uploadResult) {
+          businessRegImageUrl = uploadResult.secure_url;
+        } else {
+          throw new Error('File upload failed');
+        }
+      } catch (error) {
+        this.logger.error('Error uploading image during update:', error.message);
+        throw new ConflictException('File processing failed during update');
+      }
+    }
+  
+    const updatedUser = await this.usersModel.findByIdAndUpdate(
+      id,
+      {
+        ...updateUserDto,
+        businessRegImage: businessRegImageUrl,
+      },
+      { new: true, runValidators: true },
+    );
+  
+    if (!updatedUser) {
+      throw new NotFoundException(`User with ID "${id}" not found`);
+    }
+    return updatedUser;
   }
+  
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(id: string): Promise<void> {
+    const result = await this.usersModel.findByIdAndDelete(id);
+    if (!result) {
+      throw new NotFoundException(`User with ID "${id}" not found`);
+    }
   }
 
   // Helpers
   private async createAdmin() {
-    const adminUser = await this.findByEmail('admin@mailtor.com');
+    const adminUser = await this.findByEmail('admin@mailinator.com');
 
     if (adminUser) {
       return;
@@ -127,7 +172,7 @@ export class UserService {
     await this.usersModel.create({
       fName: 'admin',
       lName: 'admin',
-      email: 'admin@mailtor.com',
+      email: 'admin@mailinator.com',
       password: hash,
       userType: UserRole.ADMIN,
     });

@@ -1,25 +1,34 @@
+// src/common/guards/permission.guard.ts
 import {
   CanActivate,
   ExecutionContext,
   Injectable,
   UnauthorizedException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { IS_PERMISSION_KEY } from '../decorators/permission.decorator';
-import { Permissions } from 'constant/permission.enum';
+import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
+import { ROLES_KEY } from '../decorators/role.decorator';
+import { RoleEnum } from 'src/constant/role.enum';
+
 @Injectable()
 export class PermissionGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const requiredPermissions = this.reflector.getAllAndOverride<boolean>(
-      IS_PERMISSION_KEY,
-      [context.getHandler(), context.getClass()],
-    );
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
 
-    if (requiredPermissions) {
+    if (isPublic) {
       return true;
     }
+
+    const requiredRoles = this.reflector.getAllAndOverride<RoleEnum[]>(
+      ROLES_KEY,
+      [context.getHandler(), context.getClass()],
+    );
 
     const request = context.switchToHttp().getRequest();
     const user = request.user;
@@ -28,18 +37,14 @@ export class PermissionGuard implements CanActivate {
       throw new UnauthorizedException('User not authenticated');
     }
 
-    // const userPermissions: Permissions[] = user.permissions || [];
+    const userRoles: RoleEnum[] = user.role || [];
 
-    // const hasPermission = [
-    //   Permissions.READ,
-    //   Permissions.CREATE,
-    //   Permissions.DELETE,
-    //   Permissions.UPDATE,
-    // ].every((permission) => userPermissions.includes(permission));
-
-    // if (!hasPermission) {
-    //   throw new UnauthorizedException('Insufficient permissions');
-    // }
+    if (
+      requiredRoles &&
+      !requiredRoles.some((role) => userRoles.includes(role))
+    ) {
+      throw new ForbiddenException('Insufficient permissions');
+    }
 
     return true;
   }
