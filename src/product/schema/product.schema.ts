@@ -5,12 +5,25 @@ import { Category } from 'src/category/schema/category.schema';
 export type ProductDocument = Product & Document;
 @Schema({ timestamps: true })
 export class Product extends Document {
-  @Prop({ required: true }) productID: string;
-  @Prop({ required: true }) productName: string;
-  @Prop() productDescription: string;
-  @Prop() price: number;
+  @Prop({ required: true })
+  productName: string;
+
+  @Prop()
+  productDescription: string;
+
+  @Prop()
+  price: number;
+
+  @Prop()
+  weight: number;
+
   @Prop({ type: Types.ObjectId, required: true, ref: Category.name })
   categoryID: CreateCategoryDto | Types.ObjectId;
-  @Prop() imageURL: string;
+
+  @Prop()
+  stock: number;
+
+  @Prop()
+  imageURL: string;
 }
 export const ProductSchema = SchemaFactory.createForClass(Product);
