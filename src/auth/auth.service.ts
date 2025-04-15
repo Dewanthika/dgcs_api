@@ -29,9 +29,9 @@ export class AuthService {
     };
   }
 
-  async register(userDate: CreateUserDto) {
+  async register(createUserDto: CreateUserDto, file?: Express.Multer.File) {
     try {
-      const user = await this.userService.create(userDate);
+      const user = await this.userService.create(createUserDto, file);
       if (!user) {
         return null;
       }

@@ -1,9 +1,19 @@
-import { WebSocketGateway, SubscribeMessage, MessageBody } from '@nestjs/websockets';
+import {
+  WebSocketGateway,
+  SubscribeMessage,
+  MessageBody,
+} from '@nestjs/websockets';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 
-@WebSocketGateway()
+@WebSocketGateway({
+  cors: {
+    origin: ['http://localhost:3000'], // Allow frontend origin
+    credentials: true,
+  },
+  namespace: '/order',
+})
 export class OrderGateway {
   constructor(private readonly orderService: OrderService) {}
 
@@ -18,7 +28,7 @@ export class OrderGateway {
   }
 
   @SubscribeMessage('findOneOrder')
-  findOne(@MessageBody() id: number) {
+  findOne(@MessageBody() id: string) {
     return this.orderService.findOne(id);
   }
 
@@ -28,7 +38,7 @@ export class OrderGateway {
   }
 
   @SubscribeMessage('removeOrder')
-  remove(@MessageBody() id: number) {
+  remove(@MessageBody() id: string) {
     return this.orderService.remove(id);
   }
 }

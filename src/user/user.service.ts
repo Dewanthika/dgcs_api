@@ -5,14 +5,14 @@ import {
   NotFoundException,
   UploadedFile,
 } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import UserRole from 'constant/UserRole.enum';
+import { Model } from 'mongoose';
+import { FilesService } from 'src/files/files.service';
+import { hashPassword } from 'utils/auth.util';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './schema/user.schema';
-import { Model } from 'mongoose';
-import { hashPassword } from 'utils/auth.util';
-import UserRole from 'constant/UserRole.enum';
-import { FilesService } from 'src/files/files.service';
 
 @Injectable()
 export class UserService {
@@ -25,10 +25,7 @@ export class UserService {
     this.createAdmin();
   }
 
-  async create(
-    createUserDto: CreateUserDto,
-    @UploadedFile() file?: Express.Multer.File,
-  ) {
+  async create(createUserDto: CreateUserDto, file?: Express.Multer.File) {
     let user: UserDocument;
     try {
       const existingUser = await this.usersModel.findOne({
@@ -119,9 +116,9 @@ export class UserService {
     if (!existingUser) {
       throw new NotFoundException(`User with ID "${id}" not found`);
     }
-  
+
     let businessRegImageUrl = existingUser.businessRegImage;
-  
+
     if (file) {
       try {
         const uploadResult = await this.fileService.uploadFile(file);
@@ -131,11 +128,14 @@ export class UserService {
           throw new Error('File upload failed');
         }
       } catch (error) {
-        this.logger.error('Error uploading image during update:', error.message);
+        this.logger.error(
+          'Error uploading image during update:',
+          error.message,
+        );
         throw new ConflictException('File processing failed during update');
       }
     }
-  
+
     const updatedUser = await this.usersModel.findByIdAndUpdate(
       id,
       {
@@ -144,13 +144,12 @@ export class UserService {
       },
       { new: true, runValidators: true },
     );
-  
+
     if (!updatedUser) {
       throw new NotFoundException(`User with ID "${id}" not found`);
     }
     return updatedUser;
   }
-  
 
   async remove(id: string): Promise<void> {
     const result = await this.usersModel.findByIdAndDelete(id);

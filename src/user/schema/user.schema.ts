@@ -1,8 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { Company } from 'src/company/schema/company.schema';
-import { CreateCompanyDto } from 'src/company/dto/create-company.dto';
-import UserRole from 'constant/UserRole.enum';
 
 export type UserDocument = User & Document;
 
@@ -48,7 +46,7 @@ export class User extends Document {
   businessRegImage?: string; // Storing the file path or URL
 
   @Prop({ type: Types.ObjectId, required: false, ref: Company.name })
-  companyID: CreateCompanyDto | Types.ObjectId;
+  companyID: Types.ObjectId;
 
   @Prop({ type: String, required: true })
   userType: string;
