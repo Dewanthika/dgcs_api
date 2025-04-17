@@ -16,7 +16,7 @@ export class AuthService {
     const isMatch = user && (await isPasswordMatch(pass, user?.password));
 
     if (!isMatch) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('Email or password is incorrect');
     }
 
     const payload = {

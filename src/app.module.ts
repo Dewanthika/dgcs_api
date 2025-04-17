@@ -14,6 +14,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { FilesModule } from './files/files.module';
 import { CloudinaryModule } from 'nestjs-cloudinary';
 import { MulterModule } from '@nestjs/platform-express';
+import { SaleModule } from './sale/sale.module';
 import * as multer from 'multer';
 
 @Module({
@@ -47,6 +48,7 @@ import * as multer from 'multer';
       storage: multer.memoryStorage(),
     }),
     FilesModule,
+    SaleModule,
   ],
 })
 export class AppModule {}
