@@ -74,6 +74,9 @@ export class Order extends Document {
 
   @Prop()
   isApproved?: boolean;
+
+  @Prop()
+  trackingLink?: string;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

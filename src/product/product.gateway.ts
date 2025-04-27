@@ -74,7 +74,7 @@ export class ProductGateway {
     }: {
       id: string;
       updateProductDto: UpdateProductDto;
-      file: string;
+      file?: string;
     },
   ) {
     try {

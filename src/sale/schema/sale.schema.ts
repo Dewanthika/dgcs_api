@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
 import { Product } from 'src/product/schema/product.schema';
 import { Order } from 'src/order/schema/order.schema';
+import { User } from 'src/user/schema/user.schema';
 
 export type SaleDocument = HydratedDocument<Sale>;
 
@@ -21,6 +22,9 @@ export class Sale {
 
   @Prop({ type: Types.ObjectId, ref: Order.name, required: true })
   order: Types.ObjectId;
+
+  @Prop({ type: Types.ObjectId, ref: User.name, required: true })
+  userId: Types.ObjectId;
 }
 
 export const SaleSchema = SchemaFactory.createForClass(Sale);

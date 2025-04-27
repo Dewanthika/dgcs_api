@@ -24,4 +24,8 @@ export class CreateSaleDto {
   @IsMongoId()
   @IsNotEmpty()
   order: string;
+
+  @IsMongoId()
+  @IsNotEmpty()
+  userId: string;
 }

@@ -1,15 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { sendEmail } from '../utils/nodemailer.util'; // Import sendEmail function
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { WsException } from '@nestjs/websockets';
-import { Model, ObjectId, Types } from 'mongoose';
+import { Model, Types } from 'mongoose';
+import OrderStatusEnum from 'src/constant/orderStatus.enum';
+import { SaleService } from 'src/sale/sale.service';
+import { User, UserDocument } from 'src/user/schema/user.schema';
 import Stripe from 'stripe';
+import { sendEmail } from '../utils/nodemailer.util'; // Import sendEmail function
 import { CreateOrderDto, OrderItemDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { Order, OrderDocument } from './schema/order.schema';
-import { CreateUserDto } from 'src/user/dto/create-user.dto';
-import { User, UserDocument } from 'src/user/schema/user.schema';
 
 @Injectable()
 export class OrderService {
@@ -19,6 +20,7 @@ export class OrderService {
     @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
     @InjectModel(User.name) private customerModel: Model<UserDocument>,
     private configService: ConfigService,
+    private saleService: SaleService,
   ) {
     this.stripe = new Stripe(
       this.configService.get<string>('STRIPE_SECRET_KEY') || '',
@@ -44,7 +46,7 @@ export class OrderService {
   }
 
   async findAll(): Promise<Order[]> {
-    return this.orderModel.find().populate('customer outlet items.product');
+    return this.orderModel.find().populate('userID outlet items.product');
   }
 
   async findOne(id: string): Promise<Order> {
@@ -62,6 +64,46 @@ export class OrderService {
       { new: true },
     );
     if (!updated) throw new NotFoundException('Order not found');
+
+    // Send email notification on status update
+    if (updateOrderDto.orderStatus) {
+      const order = await this.findOne(id);
+
+      // Save sales when order status changes to COMPLETE
+      if (updateOrderDto.orderStatus === OrderStatusEnum.COMPLETE) {
+        // Transform order items to sales items as needed by CreateSaleDto
+        const salesItems = order.items.map(item => ({
+          product: item.product,
+          quantity: item.quantity,
+          store: (order as any).outlet?._id?.toString() || '', // safely access outlet id as string
+          order: (order._id as any).toString(),
+        }));
+
+        // Create sale entries for each item
+        for (const saleItem of salesItems) {
+          await this.saleService.create({
+            product: saleItem.product.toString(),
+            quantity: saleItem.quantity,
+            store: saleItem.store,
+            order: saleItem.order,
+            saleDate: new Date().toISOString(),
+            totalAmount: order.totalAmount,
+            userId: order.userID.toString(),
+          });
+        }
+      }
+
+      const emailSubject = `Order Status Update - ${order._id}`;
+      const emailText = `
+        Your order with ID ${order._id} status has been updated to: ${updateOrderDto.orderStatus}.
+        You can track your order using the following link: ${order.trackingLink || 'N/A'}
+      `;
+      // Fetch user email from user service or populate userID
+      const user = await this.customerModel.findById(order.userID);
+      const userEmail = user?.email || 'no-reply@example.com';
+      await sendEmail(userEmail, emailSubject, emailText);
+    }
+
     return updated;
   }
 
@@ -154,8 +196,6 @@ export class OrderService {
       throw new WsException('Invalid JSON in metadata');
     }
 
-    console.log({ formData });
-
     // Validate required delivery address fields
     const requiredFields = ['street', 'city', 'state', 'zip'];
     for (const field of requiredFields) {
@@ -196,12 +236,32 @@ export class OrderService {
       isApproved: false,
       orderDate: new Date(),
       orderType: 'delivery',
-      orderStatus: 'pending',
+      orderStatus: OrderStatusEnum.COMPLETE,
       deliveryCharge: 400,
       paymentMethod: 'stripe',
     });
 
     await order.save();
+
+    const salesItems = order.items.map(item => ({
+      product: item.product,
+      quantity: item.quantity,
+      store: (order as any).outlet?._id?.toString() || '',
+      order: (order._id as any).toString(),
+    }));
+
+    // Create sale entries for each item
+    for (const saleItem of salesItems) {
+      await this.saleService.create({
+        product: saleItem.product.toString(),
+        quantity: saleItem.quantity,
+        store: saleItem.store,
+        order: saleItem.order,
+        saleDate: new Date().toISOString(),
+        totalAmount: order.totalAmount,
+        userId: order.userID.toString(),
+      });
+    }
 
     const emailSubject = `Order Confirmation - ${order._id}`;
     const emailText = `

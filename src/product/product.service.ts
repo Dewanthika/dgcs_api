@@ -71,7 +71,10 @@ export class ProductService {
   // Get one product by ID
   async findOne(id: number) {
     try {
-      const product = await this.productModel.findById(id).exec();
+      const product = await this.productModel
+        .findById(id)
+        .populate('categoryID')
+        .exec();
       if (!product) {
         throw new Error('Product not found');
       }
@@ -86,11 +89,11 @@ export class ProductService {
   async update(
     id: string,
     updateProductDto: UpdateProductDto,
-    file: string, // changed from Express.Multer.File to base64 string
+    file?: string, // changed from Express.Multer.File to base64 string
   ) {
     try {
       // Retain the existing image URL if no new image is uploaded
-      let imageUrl = updateProductDto.imageURL || '';
+      let imageUrl = updateProductDto?.imageURL || '';
 
       // If a new image file is provided (base64 string)
       if (file) {
@@ -153,6 +156,20 @@ export class ProductService {
     } catch (error) {
       this.logger.error('Error removing product:', error);
       throw new ConflictException('Error removing product');
+    }
+  }
+
+  // Get latest 5 products sorted by creation date descending
+  async findLatestProducts(limit = 5) {
+    try {
+      return await this.productModel
+        .find()
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .exec();
+    } catch (error) {
+      this.logger.error('Error fetching latest products:', error);
+      throw new ConflictException('Error fetching latest products');
     }
   }
 }

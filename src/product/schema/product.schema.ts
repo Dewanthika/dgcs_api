@@ -18,12 +18,15 @@ export class Product extends Document {
   weight: number;
 
   @Prop({ type: Types.ObjectId, required: true, ref: Category.name })
-  categoryID: CreateCategoryDto | Types.ObjectId;
+  categoryID: Types.ObjectId;
 
   @Prop()
   stock: number;
 
   @Prop()
   imageURL: string;
+
+  @Prop({ default: false })
+  isHot: boolean;
 }
 export const ProductSchema = SchemaFactory.createForClass(Product);

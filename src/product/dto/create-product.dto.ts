@@ -34,4 +34,7 @@ export class CreateProductDto {
   @IsString()
   @IsOptional()
   imageURL?: string;
+
+  @IsOptional()
+  isHot?: boolean;
 }
