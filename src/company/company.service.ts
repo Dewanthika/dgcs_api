@@ -1,26 +1,32 @@
 import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
+import { Company, CompanyDocument } from './schema/company.schema';
 
 @Injectable()
 export class CompanyService {
-  create(createCompanyDto: CreateCompanyDto) {
-    return 'This action adds a new company';
+  constructor(@InjectModel(Company.name) private companyModel: Model<CompanyDocument>) {}
+
+  async create(createCompanyDto: CreateCompanyDto): Promise<Company> {
+    const createdCompany = new this.companyModel(createCompanyDto);
+    return createdCompany.save();
   }
 
-  findAll() {
-    return `This action returns all company`;
+  async findAll(): Promise<Company[]> {
+    return this.companyModel.find().exec();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} company`;
+  async findOne(id: string): Promise<Company | null> {
+    return this.companyModel.findById(id).exec();
   }
 
-  update(id: number, updateCompanyDto: UpdateCompanyDto) {
-    return `This action updates a #${id} company`;
+  async update(id: string, updateCompanyDto: UpdateCompanyDto): Promise<Company | null> {
+    return this.companyModel.findByIdAndUpdate(id, updateCompanyDto, { new: true }).exec();
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} company`;
+  async remove(id: string): Promise<Company | null> {
+    return this.companyModel.findByIdAndDelete(id).exec();
   }
 }

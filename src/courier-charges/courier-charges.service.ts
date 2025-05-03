@@ -1,26 +1,45 @@
 import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { CreateCourierChargeDto } from './dto/create-courier-charge.dto';
 import { UpdateCourierChargeDto } from './dto/update-courier-charge.dto';
+import {
+  CarrierCost,
+  CarrierCostDocument,
+} from './schema/courier-charge.schema';
 
 @Injectable()
 export class CourierChargesService {
-  create(createCourierChargeDto: CreateCourierChargeDto) {
-    return 'This action adds a new courierCharge';
+  constructor(
+    @InjectModel(CarrierCost.name)
+    private carrierCostModel: Model<CarrierCostDocument>,
+  ) {}
+
+  async create(
+    createCourierChargeDto: CreateCourierChargeDto,
+  ): Promise<CarrierCost> {
+    const createdCharge = new this.carrierCostModel(createCourierChargeDto);
+    return createdCharge.save();
   }
 
-  findAll() {
-    return `This action returns all courierCharges`;
+  async findAll(): Promise<CarrierCost[]> {
+    return this.carrierCostModel.find().exec();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} courierCharge`;
+  async findOne(id: string): Promise<CarrierCost | null> {
+    return this.carrierCostModel.findById(id).exec();
   }
 
-  update(id: number, updateCourierChargeDto: UpdateCourierChargeDto) {
-    return `This action updates a #${id} courierCharge`;
+  async update(
+    id: string,
+    updateCourierChargeDto: UpdateCourierChargeDto,
+  ): Promise<CarrierCost | null> {
+    return this.carrierCostModel
+      .findByIdAndUpdate(id, updateCourierChargeDto, { new: true })
+      .exec();
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} courierCharge`;
+  async remove(id: string): Promise<CarrierCost | null> {
+    return this.carrierCostModel.findByIdAndDelete(id).exec();
   }
 }

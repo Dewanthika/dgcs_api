@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { CourierChargesService } from './courier-charges.service';
 import { UpdateCourierChargeDto } from './dto/update-courier-charge.dto';
 import { CreateCourierChargeDto } from './dto/create-courier-charge.dto';
@@ -19,16 +27,19 @@ export class CourierChargesController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.courierChargesService.findOne(+id);
+    return this.courierChargesService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCourierChargeDto: UpdateCourierChargeDto) {
-    return this.courierChargesService.update(+id, updateCourierChargeDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateCourierChargeDto: UpdateCourierChargeDto,
+  ) {
+    return this.courierChargesService.update(id, updateCourierChargeDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.courierChargesService.remove(+id);
+    return this.courierChargesService.remove(id);
   }
 }
