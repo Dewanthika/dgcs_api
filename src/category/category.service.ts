@@ -29,11 +29,15 @@ export class CategoryService {
 
   // Update an existing category
   async update(id: string, updateCategoryDto: UpdateCategoryDto) {
-    return await this.categoryModel
-      .findByIdAndUpdate(id, updateCategoryDto, {
-        new: true,
-      })
+    const result = await this.categoryModel
+      .findByIdAndUpdate(id, updateCategoryDto, { new: true })
       .exec();
+
+    if (!result) {
+      console.warn('No category found with this ID in DB!');
+    }
+
+    return result;
   }
 
   // Remove a category

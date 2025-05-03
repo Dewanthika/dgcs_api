@@ -2,43 +2,135 @@ import {
   WebSocketGateway,
   SubscribeMessage,
   MessageBody,
+  ConnectedSocket,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
 } from '@nestjs/websockets';
+import { Socket } from 'socket.io';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 
 @WebSocketGateway({
   cors: {
-    origin: ['http://localhost:3000'], // Allow frontend origin
+    origin: ['http://localhost:3000'],
     credentials: true,
   },
   namespace: '/order',
 })
-export class OrderGateway {
+export class OrderGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(private readonly orderService: OrderService) {}
 
+  handleConnection(client: Socket) {
+    console.log(`Client connected: ${client.id}`);
+  }
+
+  handleDisconnect(client: Socket) {
+    console.log(`Client disconnected: ${client.id}`);
+  }
+
   @SubscribeMessage('createOrder')
-  create(@MessageBody() createOrderDto: CreateOrderDto) {
-    return this.orderService.create(createOrderDto);
+  async create(
+    @MessageBody() createOrderDto: CreateOrderDto,
+    @ConnectedSocket() client: Socket,
+  ) {
+    try {
+      const order = await this.orderService.create(createOrderDto);
+      return { 
+        event: 'createOrder',
+        success: true,
+        data: order,
+      };
+    } catch (error) {
+      return {
+        event: 'createOrder',
+        success: false,
+        error: error.message,
+      };
+    }
   }
 
   @SubscribeMessage('findAllOrder')
-  findAll() {
-    return this.orderService.findAll();
+  async findAll(@ConnectedSocket() client: Socket) {
+    try {
+      const orders = await this.orderService.findAll();
+      return { 
+        event: 'findAllOrder', 
+        success: true, 
+        data: orders 
+      };
+    } catch (error) {
+      return {
+        event: 'findAllOrder',
+        success: false,
+        error: error.message,
+      };
+    }
   }
 
   @SubscribeMessage('findOneOrder')
-  findOne(@MessageBody() id: string) {
-    return this.orderService.findOne(id);
+  async findOne(
+    @MessageBody() id: string,
+    @ConnectedSocket() client: Socket,
+  ) {
+    try {
+      const order = await this.orderService.findOneForEdit(id);
+      console.log(id , order);
+      return {
+        event: 'findOneOrder',
+        success: true,
+        data: order,
+      };
+    } catch (error) {
+      return {
+        event: 'findOneOrder',
+        success: false,
+        error: error.message,
+      };
+    }
   }
 
   @SubscribeMessage('updateOrder')
-  update(@MessageBody() updateOrderDto: UpdateOrderDto) {
-    return this.orderService.update(updateOrderDto.id, updateOrderDto);
+  async update(
+    @MessageBody() updateOrderDto: UpdateOrderDto,
+    @ConnectedSocket() client: Socket,
+  ) {
+    try {
+      const updatedOrder = await this.orderService.update(
+        updateOrderDto.id, 
+        updateOrderDto
+      );
+      return {
+        event: 'updateOrder',
+        success: true,
+        data: updatedOrder,
+      };
+    } catch (error) {
+      return {
+        event: 'updateOrder',
+        success: false,
+        error: error.message,
+      };
+    }
   }
 
   @SubscribeMessage('removeOrder')
-  remove(@MessageBody() id: string) {
-    return this.orderService.remove(id);
+  async remove(
+    @MessageBody() id: string,
+    @ConnectedSocket() client: Socket,
+  ) {
+    try {
+      await this.orderService.remove(id);
+      return {
+        event: 'removeOrder',
+        success: true,
+      };
+    } catch (error) {
+      return {
+        event: 'removeOrder',
+        success: false,
+        error: error.message,
+      };
+    }
   }
 }

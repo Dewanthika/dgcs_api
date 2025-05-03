@@ -46,7 +46,7 @@ export class OrderService {
   }
 
   async findAll(): Promise<Order[]> {
-    return this.orderModel.find().populate('userID outlet items.product');
+    return this.orderModel.find();
   }
 
   async findOne(id: string): Promise<Order> {
@@ -72,7 +72,7 @@ export class OrderService {
       // Save sales when order status changes to COMPLETE
       if (updateOrderDto.orderStatus === OrderStatusEnum.COMPLETE) {
         // Transform order items to sales items as needed by CreateSaleDto
-        const salesItems = order.items.map(item => ({
+        const salesItems = order.items.map((item) => ({
           product: item.product,
           quantity: item.quantity,
           store: (order as any).outlet?._id?.toString() || '', // safely access outlet id as string
@@ -144,7 +144,7 @@ export class OrderService {
       line_items: items.map((item) => ({
         quantity: item.quantity,
         price_data: {
-          currency: 'usd',
+          currency: 'lkr',
           unit_amount: item.unitPrice * 100, // Stripe expects amount in cents
           product_data: {
             name:
@@ -155,7 +155,8 @@ export class OrderService {
         },
       })),
       customer_email: customerEmail,
-      success_url: `${process.env.FRONTEND_URL}/checkout?session_id={CHECKOUT_SESSION_ID}`,
+      // Change Here for payment success and cancel URLs
+      success_url: `${process.env.FRONTEND_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.FRONTEND_URL}/checkout`,
       payment_intent_data: {
         metadata: {
@@ -239,11 +240,12 @@ export class OrderService {
       orderStatus: OrderStatusEnum.COMPLETE,
       deliveryCharge: 400,
       paymentMethod: 'stripe',
+      paymentIntentId: paymentIntent.id,
     });
 
     await order.save();
 
-    const salesItems = order.items.map(item => ({
+    const salesItems = order.items.map((item) => ({
       product: item.product,
       quantity: item.quantity,
       store: (order as any).outlet?._id?.toString() || '',
@@ -282,5 +284,51 @@ export class OrderService {
       `;
 
     await sendEmail(formData.email, emailSubject, emailText);
+  }
+
+  // Add this to your OrderService
+  async findBySessionId(sessionId: string): Promise<Order> {
+    // First get the session to find the payment intent ID
+    const session = await this.stripe.checkout.sessions.retrieve(sessionId);
+    if (!session.payment_intent) {
+      throw new NotFoundException('Payment intent not found in session');
+    }
+
+    // Then find order by payment intent ID
+    const order = await this.orderModel
+      .findOne({
+        paymentIntentId: session.payment_intent as string,
+      })
+      .populate('customer items.product');
+
+    if (!order) {
+      throw new NotFoundException('Order not found for this session');
+    }
+
+    return order;
+  }
+
+  async findOneForEdit(id: string): Promise<Order> {
+    const order = await this.orderModel
+      .findById(id)
+      .populate([
+        {
+          path: 'userID',
+          model: 'User',
+          select: 'fName lName email phone address city district postal_code',
+        },
+        {
+          path: 'items.product',
+          model: 'Product',
+          select: 'title price stock',
+        },
+      ])
+      .exec();
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    return order;
   }
 }

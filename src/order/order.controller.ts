@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Post,
-  Get,
-  Param,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Post, Get, Param, Req } from '@nestjs/common';
 import { Public } from 'src/auth/decorators/public.decorator';
 import { OrderItemDto } from './dto/create-order.dto';
 import { OrderService } from './order.service';
@@ -58,5 +50,18 @@ export class OrderController {
   @Get(':id')
   async getOrderDetails(@Param('id') id: string) {
     return this.orderService.findOne(id);
+  }
+
+  // Add this to your OrderController
+  @Get('session/:sessionId')
+  @Public()
+  async getOrderBySessionId(@Param('sessionId') sessionId: string) {
+    return this.orderService.findBySessionId(sessionId);
+  }
+
+  @Get(':id/edit')
+  @Public()
+  async getOrderForEdit(@Param('id') id: string) {
+    return this.orderService.findOneForEdit(id);
   }
 }
