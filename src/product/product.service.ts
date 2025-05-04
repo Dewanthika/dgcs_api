@@ -172,4 +172,16 @@ export class ProductService {
       throw new ConflictException('Error fetching latest products');
     }
   }
+
+  // Get products with stock less than or equal to minThreshold
+  async findLowStockProducts() {
+    try {
+      return await this.productModel
+        .find({ $expr: { $lte: ['$stock', '$minThreshold'] } })
+        .exec();
+    } catch (error) {
+      this.logger.error('Error fetching low stock products:', error);
+      throw new ConflictException('Error fetching low stock products');
+    }
+  }
 }

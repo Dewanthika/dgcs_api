@@ -14,6 +14,24 @@ export class OrderController {
     return this.orderService.createPaymentIntent(items);
   }
 
+  @Get('total-last-30-days')
+  async getTotalOrdersLast30Days() {
+    const totalOrders = await this.orderService.getTotalOrdersLast30Days();
+    return { totalOrders };
+  }
+
+  @Get('revenue-last-30-days')
+  async getTotalRevenueLast30Days() {
+    const totalRevenue = await this.orderService.getTotalRevenueLast30Days();
+    return { totalRevenue };
+  }
+
+  @Get('recent')
+  async getRecentOrders() {
+    const recentOrders = await this.orderService.getRecentOrders();
+    return recentOrders;
+  }
+
   @Post('checkout-session')
   @Public()
   async createCheckoutSession(

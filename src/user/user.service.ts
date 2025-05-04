@@ -25,6 +25,25 @@ export class UserService {
     this.createAdmin();
   }
 
+  async getTotalCustomersLast30Days(): Promise<number> {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    return this.usersModel.countDocuments({
+      joinedDate: { $gte: thirtyDaysAgo },
+    });
+  }
+
+  async getNewCustomersLast30Days(): Promise<number> {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    return this.usersModel.countDocuments({
+      joinedDate: { $gte: thirtyDaysAgo },
+      // Additional filters for new customers can be added here if needed
+    });
+  }
+
   async create(createUserDto: CreateUserDto, file?: Express.Multer.File) {
     let user: UserDocument;
     try {

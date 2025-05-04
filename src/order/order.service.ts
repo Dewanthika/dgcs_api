@@ -30,6 +30,36 @@ export class OrderService {
     );
   }
 
+  async getTotalOrdersLast30Days(): Promise<number> {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    return await this.orderModel.countDocuments({
+      orderDate: { $gte: thirtyDaysAgo },
+    });
+  }
+
+  async getTotalRevenueLast30Days(): Promise<number> {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const result = await this.orderModel.aggregate([
+      {
+        $match: {
+          orderDate: { $gte: thirtyDaysAgo },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalRevenue: { $sum: "$totalAmount" },
+        },
+      },
+    ]);
+
+    return result.length > 0 ? result[0].totalRevenue : 0;
+  }
+
   async create(createOrderDto: CreateOrderDto): Promise<Order> {
     try {
       const order = new this.orderModel({
@@ -49,10 +79,19 @@ export class OrderService {
     return this.orderModel.find();
   }
 
+  async getRecentOrders(limit = 10): Promise<Order[]> {
+    return await this.orderModel
+      .find()
+      .sort({ orderDate: -1 })
+      .limit(limit)
+      .populate('userID')
+      .exec();
+  }
+
   async findOne(id: string): Promise<Order> {
     const order = await this.orderModel
       .findById(id)
-      .populate('customer outlet items.product');
+      .populate('userID outlet items.product');
     if (!order) throw new NotFoundException('Order not found');
     return order;
   }

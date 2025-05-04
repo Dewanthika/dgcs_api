@@ -30,6 +30,18 @@ export class UserController {
     return this.userService.create(createUserDto, file);
   }
 
+  @Get('total-last-30-days')
+  async getTotalCustomersLast30Days() {
+    const totalCustomers = await this.userService.getTotalCustomersLast30Days();
+    return { totalCustomers };
+  }
+
+  @Get('new-last-30-days')
+  async getNewCustomersLast30Days() {
+    const newCustomers = await this.userService.getNewCustomersLast30Days();
+    return { newCustomers };
+  }
+
   @Get()
   findAll() {
     return this.userService.findAll();
