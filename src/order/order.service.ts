@@ -30,6 +30,14 @@ export class OrderService {
     );
   }
 
+  async findByUserId(userId: string): Promise<Order[]> {
+    console.log({ userId });
+    return await this.orderModel
+      .find({ userID: new Types.ObjectId(userId) })
+      .populate('userID items.product')
+      .exec();
+  }
+
   async getTotalOrdersLast30Days(): Promise<number> {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -52,7 +60,7 @@ export class OrderService {
       {
         $group: {
           _id: null,
-          totalRevenue: { $sum: "$totalAmount" },
+          totalRevenue: { $sum: '$totalAmount' },
         },
       },
     ]);

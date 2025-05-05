@@ -6,6 +6,7 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
+import { UseGuards } from '@nestjs/common';
 import { Socket } from 'socket.io';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -36,7 +37,7 @@ export class OrderGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     try {
       const order = await this.orderService.create(createOrderDto);
-      return { 
+      return {
         event: 'createOrder',
         success: true,
         data: order,
@@ -54,10 +55,10 @@ export class OrderGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async findAll(@ConnectedSocket() client: Socket) {
     try {
       const orders = await this.orderService.findAll();
-      return { 
-        event: 'findAllOrder', 
-        success: true, 
-        data: orders 
+      return {
+        event: 'findAllOrder',
+        success: true,
+        data: orders,
       };
     } catch (error) {
       return {
@@ -68,14 +69,21 @@ export class OrderGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @SubscribeMessage('findUserOrders')
+  async findUserOrders(@MessageBody() id: string) {
+    try {
+      const product = await this.orderService.findByUserId(id);
+      console.log({id, product})
+      return { event: 'findUserOrders', success: true, data: product };
+    } catch (error) {
+      return { event: 'findUserOrders', success: false, error: error.message };
+    }
+  }
+
   @SubscribeMessage('findOneOrder')
-  async findOne(
-    @MessageBody() id: string,
-    @ConnectedSocket() client: Socket,
-  ) {
+  async findOne(@MessageBody() id: string, @ConnectedSocket() client: Socket) {
     try {
       const order = await this.orderService.findOneForEdit(id);
-      console.log(id , order);
       return {
         event: 'findOneOrder',
         success: true,
@@ -97,8 +105,8 @@ export class OrderGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     try {
       const updatedOrder = await this.orderService.update(
-        updateOrderDto.id, 
-        updateOrderDto
+        updateOrderDto.id,
+        updateOrderDto,
       );
       return {
         event: 'updateOrder',
@@ -115,10 +123,7 @@ export class OrderGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('removeOrder')
-  async remove(
-    @MessageBody() id: string,
-    @ConnectedSocket() client: Socket,
-  ) {
+  async remove(@MessageBody() id: string, @ConnectedSocket() client: Socket) {
     try {
       await this.orderService.remove(id);
       return {
