@@ -40,8 +40,8 @@ export class Order extends Document {
   @Prop({ required: true, type: Types.ObjectId, ref: User.name })
   userID: Types.ObjectId;
 
-  @Prop({ required: false, type: Types.ObjectId, ref: CarrierCost.name })
-  courier: Types.ObjectId;
+  @Prop({ required: false })
+  courier_charge: number;
 
   @Prop({ required: true, type: AddressSchema })
   deliveryAddress: Address;

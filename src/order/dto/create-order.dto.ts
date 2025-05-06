@@ -42,9 +42,9 @@ export class CreateOrderDto {
   @IsNotEmpty()
   userID: Types.ObjectId;
 
-  @IsString()
+  @IsNumber()
   @IsOptional()
-  courier?: Types.ObjectId;
+  courier?: number;
 
   @ValidateNested()
   @Type(() => AddressDto)
