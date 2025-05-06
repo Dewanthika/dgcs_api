@@ -6,5 +6,8 @@ export class CarrierCost extends Document {
   @Prop({ required: true }) serviceCompany: string;
   @Prop() firstKGCost: number;
   @Prop() extraKGCost: number;
+  @Prop({ default: 'Active', enum: ['Active', 'Inactive'] })
+  status: string;
+
 }
 export const CarrierCostSchema = SchemaFactory.createForClass(CarrierCost);

@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import { CarrierCost } from 'src/courier-charges/schema/courier-charge.schema';
 import { Product } from 'src/product/schema/product.schema';
 import { User } from 'src/user/schema/user.schema';
 export type OrderDocument = Order & Document;
@@ -38,6 +39,9 @@ const OrderItemSchema = SchemaFactory.createForClass(OrderItem);
 export class Order extends Document {
   @Prop({ required: true, type: Types.ObjectId, ref: User.name })
   userID: Types.ObjectId;
+
+  @Prop({ required: false, type: Types.ObjectId, ref: CarrierCost.name })
+  courier: Types.ObjectId;
 
   @Prop({ required: true, type: AddressSchema })
   deliveryAddress: Address;
