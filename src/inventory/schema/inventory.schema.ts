@@ -5,9 +5,8 @@ import { Product } from 'src/product/schema/product.schema';
 export type InventoryDocument = Inventory & Document;
 @Schema({ timestamps: true })
 export class Inventory extends Document {
-  @Prop({ required: true, type: Types.ObjectId, ref: Product.name }) productID:
-    | CreateProductDto
-    | Types.ObjectId;
+  @Prop({ required: true, type: Types.ObjectId, ref: Product.name })
+  productID: Types.ObjectId;
   @Prop() totalQty: number;
   @Prop() damagedQty: number;
   @Prop() updatedAt: Date;

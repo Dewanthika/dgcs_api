@@ -48,6 +48,30 @@ export class OrderService {
     });
   }
 
+  async getTotalOrdersByUserId(userId: string): Promise<number> {
+    return await this.orderModel.countDocuments({
+      userID: new Types.ObjectId(userId),
+    });
+  }
+
+  async getTotalRevenueByUserId(userId: string): Promise<number> {
+    const result = await this.orderModel.aggregate([
+      {
+        $match: {
+          userID: new Types.ObjectId(userId),
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalRevenue: { $sum: '$totalAmount' },
+        },
+      },
+    ]);
+
+    return result.length > 0 ? result[0].totalRevenue : 0;
+  }
+
   async getTotalRevenueLast30Days(): Promise<number> {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);

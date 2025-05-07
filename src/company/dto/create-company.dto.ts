@@ -1,10 +1,24 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsMongoId, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { Types } from 'mongoose';
 export class CreateCompanyDto {
-  @IsString() @IsNotEmpty() CMPName: string;
-  @IsString() @IsNotEmpty() CMPPhone?: string;
-  @IsString() @IsNotEmpty() CMPAddress?: string;
-  @IsString() @IsNotEmpty() BizRegNo?: string;
-  @IsNumber() @IsNotEmpty() creditLimit?: number;
-  @IsString() @IsNotEmpty() paymentTerms?: string;
+  @IsMongoId()
+  @IsNotEmpty()
+  userId: Types.ObjectId;
+
+  @IsNumber()
+  @IsNotEmpty()
+  creditLimit?: number;
+
+  @IsNumber()
+  @IsNotEmpty()
+  discount?: number;
+
+  @IsString()
+  @IsNotEmpty()
+  paymentTerms?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  status?: string;
 }

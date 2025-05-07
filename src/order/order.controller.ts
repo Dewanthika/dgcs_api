@@ -59,10 +59,21 @@ export class OrderController {
     }
   }
 
-  @Get('user')
-  async getUserOrders(@Req() req: Request) {
-    // const userId = req.user['sub'];
-    // return this.orderService.findByUserId(userId);
+  @Get('user/:userId')
+  async getUserOrders(@Param('userId') userId: string) {
+    return this.orderService.findByUserId(userId);
+  }
+
+  @Get('total/:userId')
+  async getTotalOrdersByUserId(@Param('userId') userId: string) {
+    const totalOrders = await this.orderService.getTotalOrdersByUserId(userId);
+    return { totalOrders };
+  }
+
+  @Get('revenue/:userId')
+  async getTotalRevenueByUserId(@Param('userId') userId: string) {
+    const totalRevenue = await this.orderService.getTotalRevenueByUserId(userId);
+    return { totalRevenue };
   }
 
   @Get(':id')
