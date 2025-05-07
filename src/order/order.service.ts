@@ -11,6 +11,7 @@ import { sendEmail } from '../utils/nodemailer.util'; // Import sendEmail functi
 import { CreateOrderDto, OrderItemDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { Order, OrderDocument } from './schema/order.schema';
+import { ProductService } from 'src/product/product.service';
 
 @Injectable()
 export class OrderService {
@@ -21,6 +22,7 @@ export class OrderService {
     @InjectModel(User.name) private customerModel: Model<UserDocument>,
     private configService: ConfigService,
     private saleService: SaleService,
+    private productService: ProductService,
   ) {
     this.stripe = new Stripe(
       this.configService.get<string>('STRIPE_SECRET_KEY') || '',
@@ -31,7 +33,6 @@ export class OrderService {
   }
 
   async findByUserId(userId: string): Promise<Order[]> {
-    console.log({ userId });
     return await this.orderModel
       .find({ userID: new Types.ObjectId(userId) })
       .populate('userID items.product')
@@ -192,12 +193,11 @@ export class OrderService {
         quantity: item.quantity,
         price_data: {
           currency: 'lkr',
-          unit_amount: item.unitPrice * 100, // Stripe expects amount in cents
+          unit_amount:
+            (item.unitPrice + formData.deliveryCharge - formData.discount) *
+            100, // Stripe expects amount in cents
           product_data: {
-            name:
-              typeof item.product === 'string'
-                ? item.product
-                : String(item.product),
+            name: item.productName!,
           },
         },
       })),
@@ -268,29 +268,57 @@ export class OrderService {
       0,
     );
 
-    const order = new this.orderModel({
-      userID: user?._id as Types.ObjectId,
-      items: orderItems,
-      totalAmount,
-      deliveryAddress: {
-        street: formData.deliveryAddress.street,
-        city: formData.deliveryAddress.city,
-        state: formData.deliveryAddress.state,
-        zip: formData.deliveryAddress.zip,
-      },
-      orderWeight: 1,
-      isBulkOrder: formData.isBulkOrder,
-      isCredit: formData.isCredit,
-      isApproved: false,
-      orderDate: new Date(),
-      orderType: 'delivery',
-      orderStatus: OrderStatusEnum.COMPLETE,
-      deliveryCharge: 400,
-      paymentMethod: 'stripe',
-      paymentIntentId: paymentIntent.id,
-    });
+    let order;
+    try {
+      console.log('I maher')
+      order = new this.orderModel({
+        userID: user?._id as Types.ObjectId,
+        items: orderItems,
+        totalAmount,
+        deliveryAddress: {
+          street: formData.deliveryAddress.street,
+          city: formData.deliveryAddress.city,
+          state: formData.deliveryAddress.state,
+          zip: formData.deliveryAddress.zip,
+        },
+        orderWeight: formData?.orderWeight || 0,
+        isBulkOrder: formData.isBulkOrder,
+        isCredit: formData.isCredit,
+        isApproved: false,
+        orderDate: new Date(),
+        orderType: 'delivery',
+        orderStatus: OrderStatusEnum.COMPLETE,
+        deliveryCharge: formData.deliveryCharge || 0,
+        discount: formData.discount || 0,
+        paymentMethod: 'stripe',
+        paymentIntentId: paymentIntent.id,
+      });
 
-    await order.save();
+      await order.save();
+
+    } catch (error) {
+      console.error('Error creating order:', error);
+      throw new WsException('Failed to create order');
+    }
+
+    // Deduct stock from products
+    for (const item of orderItems) {
+      const product = await this.productService.findOne(
+        item.product.toString(),
+      );
+      if (!product) {
+        throw new WsException(`Product not found: ${item.product}`);
+      }
+      if (product.stock < item.quantity) {
+        throw new WsException(
+          `Insufficient stock for product ${product.productName}. Available: ${product.stock}, required: ${item.quantity}`,
+        );
+      }
+      const newStock = product.stock - item.quantity;
+      await this.productService.update(product?._id!.toString(), {
+        stock: newStock,
+      });
+    }
 
     const salesItems = order.items.map((item) => ({
       product: item.product,

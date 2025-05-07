@@ -30,6 +30,10 @@ export class OrderItemDto {
   @IsMongoId()
   product: Types.ObjectId;
 
+  @IsString()
+  @IsOptional()
+  productName?: string;
+
   @IsNumber()
   quantity: number;
 
@@ -42,10 +46,6 @@ export class CreateOrderDto {
   @IsNotEmpty()
   userID: Types.ObjectId;
 
-  @IsNumber()
-  @IsOptional()
-  courier?: number;
-
   @ValidateNested()
   @Type(() => AddressDto)
   deliveryAddress?: AddressDto;
@@ -55,6 +55,9 @@ export class CreateOrderDto {
 
   @IsOptional()
   deliveryCharge?: number;
+
+  @IsOptional()
+  discount?: number;
 
   @IsOptional()
   orderType?: string;

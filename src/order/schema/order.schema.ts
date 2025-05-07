@@ -30,6 +30,9 @@ class OrderItem {
   @Prop({ required: true })
   quantity: number;
 
+  @Prop({ required: false })
+  productName?: string;
+
   @Prop({ required: true })
   unitPrice: number;
 }
@@ -39,9 +42,6 @@ const OrderItemSchema = SchemaFactory.createForClass(OrderItem);
 export class Order extends Document {
   @Prop({ required: true, type: Types.ObjectId, ref: User.name })
   userID: Types.ObjectId;
-
-  @Prop({ required: false })
-  courier_charge: number;
 
   @Prop({ required: true, type: AddressSchema })
   deliveryAddress: Address;
@@ -54,6 +54,9 @@ export class Order extends Document {
 
   @Prop()
   orderType: string;
+
+  @Prop()
+  discount: number;
 
   @Prop()
   orderStatus: string;

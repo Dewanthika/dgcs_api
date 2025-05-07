@@ -69,7 +69,7 @@ export class ProductService {
   }
 
   // Get one product by ID
-  async findOne(id: number) {
+  async findOne(id: string) {
     try {
       const product = await this.productModel
         .findById(id)

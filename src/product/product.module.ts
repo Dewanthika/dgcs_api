@@ -11,5 +11,6 @@ import { Product, ProductSchema } from './schema/product.schema';
     FilesModule,
   ],
   providers: [ProductGateway, ProductService],
+  exports: [ProductService],
 })
 export class ProductModule {}

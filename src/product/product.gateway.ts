@@ -55,7 +55,7 @@ export class ProductGateway {
   }
 
   @SubscribeMessage('findOneProduct')
-  async findOne(@MessageBody() id: number) {
+  async findOne(@MessageBody() id: string) {
     try {
       const product = await this.productService.findOne(id);
       return { event: 'findOneProduct', success: true, data: product };

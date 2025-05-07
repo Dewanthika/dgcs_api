@@ -8,6 +8,7 @@ import { ConfigModule } from '@nestjs/config';
 import { UserModule } from 'src/user/user.module';
 import { User, UserSchema } from 'src/user/schema/user.schema';
 import { SaleModule } from 'src/sale/sale.module';
+import { ProductModule } from 'src/product/product.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { SaleModule } from 'src/sale/sale.module';
     ConfigModule,
     UserModule,
     SaleModule,
+    ProductModule,
   ],
   providers: [OrderGateway, OrderService],
   controllers: [OrderController],
