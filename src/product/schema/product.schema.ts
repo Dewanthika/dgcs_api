@@ -23,6 +23,9 @@ export class Product extends Document {
   @Prop()
   stock: number;
 
+  @Prop()
+  reorderLevel: number;
+
   @Prop({ default: 5 })
   minThreshold: number;
 

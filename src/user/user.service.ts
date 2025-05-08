@@ -28,9 +28,10 @@ export class UserService {
   async getTotalCustomersLast30Days(): Promise<number> {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
+  
     return this.usersModel.countDocuments({
       joinedDate: { $gte: thirtyDaysAgo },
+      userType: { $nin: ['Admin', 'Staff'] },
     });
   }
 

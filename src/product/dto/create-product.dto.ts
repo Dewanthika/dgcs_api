@@ -23,6 +23,9 @@ export class CreateProductDto {
 
   @IsNumber()
   stock?: number;
+  
+  @IsNumber()
+  reorderLevel?: number;
 
   @IsDecimal()
   weight?: number;
