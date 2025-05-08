@@ -7,7 +7,9 @@ import { Company, CompanyDocument } from './schema/company.schema';
 
 @Injectable()
 export class CompanyService {
-  constructor(@InjectModel(Company.name) private companyModel: Model<CompanyDocument>) {}
+  constructor(
+    @InjectModel(Company.name) private companyModel: Model<CompanyDocument>,
+  ) {}
 
   async create(createCompanyDto: CreateCompanyDto): Promise<Company> {
     const createdCompany = new this.companyModel(createCompanyDto);
@@ -22,8 +24,17 @@ export class CompanyService {
     return this.companyModel.findById(id).exec();
   }
 
-  async update(id: string, updateCompanyDto: UpdateCompanyDto): Promise<Company | null> {
-    return this.companyModel.findByIdAndUpdate(id, updateCompanyDto, { new: true }).exec();
+  async findOneByUser(id: string): Promise<Company | null> {
+    return this.companyModel.findOne({ userId: id }).exec();
+  }
+
+  async update(
+    id: string,
+    updateCompanyDto: UpdateCompanyDto,
+  ): Promise<Company | null> {
+    return this.companyModel
+      .findByIdAndUpdate(id, updateCompanyDto, { new: true })
+      .exec();
   }
 
   async remove(id: string): Promise<Company | null> {
