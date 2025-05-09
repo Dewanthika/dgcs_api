@@ -216,10 +216,10 @@ export class OrderService {
       line_items: [
         {
           quantity: 1,
-          price_data: {
-            currency: 'lkr',
+        price_data: {
+          currency: 'lkr',
             unit_amount: formData.totalAmount * 100,
-            product_data: {
+          product_data: {
               name: 'Order Total',
               description: `Includes products, ${formData.discount}% discount, and delivery charge ${formData.deliveryCharge}.`,
             },
@@ -297,7 +297,6 @@ export class OrderService {
 
     let order;
     try {
-      console.log('I maher');
       order = new this.orderModel({
         userID: user?._id as Types.ObjectId,
         items: orderItems,
@@ -315,6 +314,7 @@ export class OrderService {
         orderDate: new Date(),
         orderType: 'delivery',
         orderStatus: OrderStatusEnum.COMPLETE,
+        paymentStatus: 'complete',
         deliveryCharge: formData.deliveryCharge || 0,
         discount: formData.discount || 0,
         paymentMethod: 'stripe',
@@ -322,6 +322,7 @@ export class OrderService {
       });
 
       await order.save();
+
     } catch (error) {
       console.error('Error creating order:', error);
       throw new WsException('Failed to create order');

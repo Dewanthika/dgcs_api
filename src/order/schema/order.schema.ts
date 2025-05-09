@@ -68,6 +68,9 @@ export class Order extends Document {
   totalAmount: number;
 
   @Prop()
+  paymentStatus: string;
+
+  @Prop()
   paymentMethod: string;
 
   @Prop({ type: [OrderItemSchema], required: true })

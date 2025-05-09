@@ -64,6 +64,9 @@ export class CreateOrderDto {
 
   @IsOptional()
   orderStatus?: string;
+  
+  @IsOptional()
+  paymentStatus?: string;
 
   @IsDate()
   @IsOptional()
