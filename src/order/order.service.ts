@@ -213,18 +213,19 @@ export class OrderService {
     const session = await this.stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'payment',
-      line_items: items.map((item) => ({
-        quantity: item.quantity,
-        price_data: {
-          currency: 'lkr',
-          unit_amount:
-            (item.unitPrice + formData.deliveryCharge - formData.discount) *
-            100, // Stripe expects amount in cents
-          product_data: {
-            name: item.productName!,
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: 'lkr',
+            unit_amount: formData.totalAmount * 100,
+            product_data: {
+              name: 'Order Total',
+              description: `Includes products, ${formData.discount}% discount, and delivery charge ${formData.deliveryCharge}.`,
+            },
           },
         },
-      })),
+      ],
       customer_email: customerEmail,
       // Change Here for payment success and cancel URLs
       success_url: `${process.env.FRONTEND_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
@@ -237,6 +238,7 @@ export class OrderService {
               unitPrice: i.unitPrice,
               product:
                 typeof i.product === 'string' ? i.product : String(i.product),
+              productName: i.productName,
             })),
           ),
           data: JSON.stringify(formData),
@@ -285,6 +287,7 @@ export class OrderService {
       product: item.product,
       quantity: item.quantity,
       unitPrice: item.unitPrice,
+      productName: item.productName,
     }));
 
     const totalAmount = orderItems.reduce(
@@ -294,11 +297,11 @@ export class OrderService {
 
     let order;
     try {
-      console.log('I maher')
+      console.log('I maher');
       order = new this.orderModel({
         userID: user?._id as Types.ObjectId,
         items: orderItems,
-        totalAmount,
+        totalAmount: formData.totalAmount,
         deliveryAddress: {
           street: formData.deliveryAddress.street,
           city: formData.deliveryAddress.city,
@@ -319,7 +322,6 @@ export class OrderService {
       });
 
       await order.save();
-
     } catch (error) {
       console.error('Error creating order:', error);
       throw new WsException('Failed to create order');
